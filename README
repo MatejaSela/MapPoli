@@ -1,0 +1,36 @@
+<Mateja Sela and Annie Tong>
+
+This is a project done at Middlebury College. It involves natural lanugage processing of Twitter data
+using Twitter and Google Natural Language Processing API's. It also involes information visualization libraries
+and tools. You can open the index file into your favorite browser, or just access the project in the URL below:
+
+The web application is intended to use Twitter sentiment analysis to compare the US congress votes on contraversial bills
+and public opinion on topics of abortion (Abortion 2018), immigration (ICE 2018) and Obamacare (2010). To add more
+bills or Twitter terms:
+
+Command for googletweet.py 
+ python3 googletweet.py keyword maxhours startdate enddate
+ e.g. python3 googletweet.py immigration 0.1 0 1
+
+Command for mergejson.py 
+ python3 mergejson.py keyword 
+ e.g. python3 mergejson.py immigration
+
+For CSV_Reader.py
+1) Choose the csv downloaded from govtrack.org
+2) Change the open(filepath/bill.csv', encoding="utf-8")
+   to the appropriate path of the bill on your machine.
+3) Read the legislation, if the legislation is positive towards a topic,
+   change if(all_votes[i] == 'Aye') or 'Yes'), if it's negative use "No" or "Nay"
+4) Change the open(path/*bill_name*twitter.json') to the appropriate bill name
+5) Dump files to the appropriate location using json.dump(combined_data, outfile)
+   for the combined data use *bill_name*both and for the congress *bill_name*congress
+
+To add a new visualization in the index.html file:
+
+1) Add a new button to the top header, as currently layed out.
+2) Make sure the files are named the same as the items in the
+   class "navbar-form navbar-left".
+3) If the naming is right, the program should function
+ 
+Access: http://www.cs.middlebury.edu/~msela/701proj/index.html
