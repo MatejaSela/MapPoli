@@ -1,0 +1,70 @@
+html, body {
+  margin:0;
+  padding:0;
+  height:100%;
+}
+
+#legend{
+  height: 100%;
+  max-width: 25%;
+  position: absolute;
+  top: 90%;
+  left: 7.3%;
+  -webkit-animation: fadein 2s;
+}
+
+.right-side-infobar.hidden{
+  display:none;
+}
+
+#radio-bttns.hidden{
+  display:none;
+}
+
+#right-side-infobar{
+    float: right;
+    height: 100%;
+    max-width: 25%;
+    position: absolute;
+    top: 30%;
+    right: 3.3%;
+    -webkit-animation: fadein 2s;
+}
+
+#radio-bttns{
+  float: right;
+  height: 100%;
+  max-width: 25%;
+  position: absolute;
+  top: 10%;
+  right: 10%;
+  -webkit-animation: fadein 2s;
+}
+
+#test p {
+    opacity: 0;
+    font-size: 21px;
+    margin-top: 25px;
+    text-align: center;
+
+    -webkit-transition: opacity 2s ease-in;
+       -moz-transition: opacity 2s ease-in;
+        -ms-transition: opacity 2s ease-in;
+         -o-transition: opacity 2s ease-in;
+            transition: opacity 2s ease-in;
+}
+
+#test p.load {
+    opacity: 1;
+}
+
+.center-text {
+    position: absolute;
+    top: 15%;
+    right: 50%;
+    margin: auto;
+    display: block;
+    padding: 10px;
+    text-align: center;
+    display: inline;
+}

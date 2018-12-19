@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<!-- Created by Mateja Sela and Annie Tong -->
+<!-- Pie chart example: http://bl.ocks.org/enjalot/1203641 -->
+<html>
+  <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://www.cs.middlebury.edu/~msela/701proj/style.css">
+  </head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.js"></script>
+  <script src="https://datamaps.github.io/scripts/0.4.4/datamaps.all.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<div id="container" style="position: relative; width: 1000px; height: 600px;"></div>
+<div id = "legend" class="hidden" style="position: absolute">
+  <svg width="500" height="30" class="">
+    <defs>
+      <lineargradient id="key-gradient" x1="1" x2="0" y1="0" y2="0">
+        <stop id="stop1" offset="0%" style="stop-color: rgb(255, 255, 224);"></stop>
+        <stop id="stop3" offset="100%" style="stop-color: rgb(0, 76, 76);"></stop>
+      </lineargradient>
+    </defs>
+    <rect x="0" y="0" width="500" height="200" fill="url(#key-gradient)"></rect>
+    <g transform="translate(30,0)">
+        <text text-anchor="middle" fill="white" x="0" y="20">High</text>
+        <text text-anchor="middle" fill="black" x="450" y="20">Low</text>
+    </g>
+  </svg>
+</div>
+
+<body>
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container-fluid">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">MapPoli</a>
+      </div>
+
+      <!-- Collect the nav links, forms, and other content for toggling -->
+        <form class="navbar-form navbar-left">
+            <button type="button" id = 'obamacare' class="3-btns btn btn-default"> Obamacare (2010) </button>
+            <button type="button" id = 'ice' class="3-btns btn btn-default"> ICE (2018) </button>
+            <button type="button" id = 'abortion' class="3-btns btn btn-default"> Abortion (2018)</button>
+        </form>
+
+        </ul>
+    </div><!-- /.container-fluid -->
+  </nav>
+  <!-- Optional JavaScript -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+  <div id="right-side-infobar" class="hidden">
+    <b>Bill Information</b>
+    <p id = "abortion-para" class = "bill-paragraph">
+      <b>Anti-Abortion Bill: </b>
+      This bill amends the federal criminal code to require any healthcare practitioner who is present when a child is born alive following an abortion or attempted abortion to: (1) exercise the same degree of care as reasonably provided to any other child born alive at the same gestational age, and (2) ensure that such child is immediately admitted to a hospital.
+      An individual who violates the provisions of this bill is subject to a criminal fine, up to five years in prison, or both.
+      An individual who commits an overt act that kills a child born alive is subject to criminal prosecution for murder.
+    </p>
+
+    <p id = "obamacare-para" class = "bill-paragraph">
+        <b>Obamacare: </b>
+      Obamacare was proposed to the house as part of the revenue bills and tarnsformed the US healthcare system.
+      Obamacare continues to be a contraversial bill in 2018, as the Trump legislation tries to find alternatives to the current bill while the majority of the country still relies on this form of free healthcare.
+    </p>
+
+    <p id = "ice-para" class = "bill-paragraph">
+        <b>ICE: </b>
+      U.S. immigration and customs enforcement (ICE) was formed in 2003 to regulate illegal immigration in the US. It has become one of the most contraversial branches of the US government.
+      This bill was proposed in 2018 to expresses support for U.S. Immigration and Customs Enforcement (ICE) officers and personnel and denounces calls for ICE's abolishment.
+    </p>
+    <p id = "notable-title"> <br></br><b>Notable Votes </b> <br></br> </p>
+  </div><!-- /.right-side-infobar -->
+
+  <form id = "radio-bttns" class="hidden">
+    <b>Choose Information Type</b> <br></br>
+    <input type="radio" name="data_type" value="congress"> Congress Vote Information <br>
+    <input type="radio" name="data_type" value="twitter"> Twitter Only (Positive Sentiment %)<br>
+    <input type="radio" name="data_type" id = "primary-radio" value="congress_twitter" checked="checked"> Congress and Twitter Discrepancy <br>
+  </form>
+<div>
+
+
+
+  <script class="strict-bottom">
+
+  // set everything up for the right-side pie chart
+
+    let twitter_process = false;
+    let congress_process = false;
+    let button_clicked = ''; // store the currently clicked button id, for different files.
+
+    const states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
+            "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+            "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+            "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+            "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"];
+    const pairs = {'Alabama': 'AL', 'Alaska': 'AK', 'American Samoa': 'AS', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'District Of Columbia': 'DC', 'Federated States Of Micronesia': 'FM', 'Florida': 'FL', 'Georgia': 'GA', 'Guam': 'GU', 'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Marshall Islands': 'MH', 'Maryland': 'MD', 'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ', 'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Northern Mariana Islands': 'MP', 'Ohio': 'OH', 'Oklahoma': 'OK', 'Oregon': 'OR', 'Palau': 'PW', 'Pennsylvania': 'PA', 'Puerto Rico': 'PR', 'Rhode Island': 'RI', 'South Carolina': 'SC', 'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT', 'Virgin Islands': 'VI', 'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'}
+    var paletteScale = d3.scale.linear()
+      .domain([0,1])
+      .range(["#ffffe0","#004C4C"]);
+
+    var map = new Datamap({
+        element: document.getElementById('container'),
+        scope: 'usa',
+        geographyConfig: {
+            highlightOnHover: true,
+            popupOnHover: true,
+            popupTemplate: function(geo, data) {
+                // if we are displaying cogress we want votes
+                if(congress_process == true){
+                  // if there is no data, display No Data on hover
+                  if(our_data[pairs[geo.properties.name]].RY+ our_data[pairs[geo.properties.name]].RN
+                      + our_data[pairs[geo.properties.name]].DY + our_data[pairs[geo.properties.name]].DN == 0
+                    || our_data[pairs[geo.properties.name]].RY == null){
+                        return ['<div class="hoverinfo"><strong>',
+                                geo.properties.name + " has no data",
+                                '</strong></div>'].join('');
+                      }
+
+                  // if there is data, we will display the number of congressman
+                  // who voted yes/no and to which party they belong to
+                  return ['<div class="hoverinfo"><strong>',
+                          'Congress Votes in ' + geo.properties.name,
+                          ': <br> Republicans (Yes): ' + our_data[pairs[geo.properties.name]].RY,
+                          '<br> Democrats (Yes): ' + our_data[pairs[geo.properties.name]].DY,
+                          '<br> Republicans (No): ' + our_data[pairs[geo.properties.name]].RN,
+                          '<br> Democrats (No): ' + our_data[pairs[geo.properties.name]].DN,
+                          '</strong></div>'].join('');
+                }
+                // otherwise if our twitter or combined data have no data, we display this on hover
+                if(our_data[pairs[geo.properties.name]].score == "No data"){
+                  return ['<div class="hoverinfo"><strong>',
+                          geo.properties.name + " has no data",
+                          '</strong></div>'].join('');
+                }
+                // if we have twitter data, we want to display the percentage of people who
+                // think postiively about immigration, obamacare or abortion
+                if(twitter_process == true){
+                  let chosen_twitter_topic; //the topic we chose for twitter scarping
+                  if(button_clicked != "ice"){
+                    chosen_twitter_topic = button_clicked // we chose the same term as the bill topic
+                  }
+                  else{
+                    chosen_twitter_topic = "immigration"
+                  }
+                  return ['<div class="hoverinfo"><strong>',
+                          'Percentage of Twitter users pro ' + chosen_twitter_topic,  " in " + geo.properties.name,
+                          ': ' + (100*our_data[pairs[geo.properties.name]].score).toFixed(2) + "%",
+                          '</strong></div>'].join('');
+                }
+                return ['<div class="hoverinfo"><strong>',
+                        'Discrepancy Score for ' + geo.properties.name,
+                        ': ' + (our_data[pairs[geo.properties.name]].score).toFixed(2),
+                        '</strong></div>'].join('');
+            }
+        },
+        fills: {
+            defaultFill: "#F4F4F4"
+        },
+    });
+
+      var dataset = {};
+      var our_data = {};
+      var url_base = 'http://www.cs.middlebury.edu/~msela/701proj/'
+
+      // the radio buttons determine the data type: congress, twitter or both
+      d3.selectAll('input[name="data_type"]').on("change", function(){
+        data_type = d3.select('input[name="data_type"]:checked').node().value;
+        switch(data_type) {
+          case "congress":
+              congress_process = true;
+              twitter_process = false;
+              url = url_base.concat(button_clicked).concat("congress.json");
+              fetch_url(url);
+              break;
+          case "twitter":
+              congress_process = false;
+              twitter_process = true;
+              url = url_base.concat(button_clicked).concat("twitter.json")
+              fetch_url(url);
+              break;
+          case "congress_twitter":
+              congress_process = false;
+              twitter_process = false;
+              url = url_base.concat(button_clicked).concat("both.json")
+              fetch_url(url);
+              break;
+          }
+        });
+        function fetch_url(url){
+          fetch(url)
+            .then(
+              function(response) {
+                if (!response.ok) {
+                  console.log('Request problem occured. Status Code: ' + response.status);
+                  throw Error(response.status);
+                }
+                // Examine the text in the response
+                return response.json();
+              }
+            ).then(data => {
+                // set the color of each state based on the discrepancy score
+
+                Object.keys(data).forEach(function(key){
+                var iso = key, value = data[key].fillKey;
+                if(data[iso].fillKey !== "not available"){
+                  dataset[iso] = paletteScale(value);
+                  our_data[iso]={"score":value, "RY": data[iso].RY, "RN": data[iso].RN, "DY" : data[iso].DY, "DN" :data[iso].DN};
+                }
+                // the state has no data
+                else{
+                  dataset[iso] = "#F4F4F4";
+                  our_data[iso]={"score":"No data"};
+                }
+              });
+
+              // add the radio buttons once the user actually uploads the Map
+              $("#radio-bttns").removeClass('hidden');
+              $("#legend").removeClass('hidden');
+              map.updateChoropleth(dataset);
+            })
+            .catch(function(err) {
+              console.log('Fetch Error :-S', err);
+            });
+        }
+
+        // function to fetch and present the notable votes
+        function fetch_notable_votes(notable_url){
+          fetch(notable_url)
+            .then(
+              function(response) {
+                if (!response.ok) {
+                  console.log('Request problem occured. Status Code: ' + response.status);
+                  throw Error(response.status);
+                }
+                // Examine the text in the response
+                return response.json();
+              }
+            ).then(data => {
+                // set the color of each state based on the discrepancy score
+
+                Object.keys(data).forEach(function(key){
+                var iso = key, value = data[key].fillKey;
+                console.log(data[iso])
+                name ="<b>Name </b> : " + data[iso].name;
+                state = "<b>State </b>: " + data[iso].state;
+                vote = "<br> <b>Vote </b>: " + data[iso].vote;
+
+                $("#right-side-infobar").append(
+                  "<p class=notable>" + name +"<br>"+ state + vote + "<br><br></p>"
+                  );
+
+              });
+            })
+            .catch(function(err) {
+              console.log('Fetch Error :-S', err);
+            });
+        }
+
+        $('.3-btns').click(function (event) {
+          //reset the tooltips
+          twitter_process = false;
+          congress_process = false;
+          //reset the notable votes
+          $( ".notable" ).remove();
+          //reveal the radio buttons
+          $("#right-side-infobar").removeClass('hidden');
+          document.getElementById("primary-radio").checked = true;
+          button_clicked = this.id;
+          if(button_clicked == "obamacare"){
+            $('#notable-title').addClass("hidden");
+          }
+          else{
+            $('#notable-title').removeClass("hidden");
+          }
+          //set the appropriate bill information to show
+          show_para = "#" + button_clicked + "-para";
+          $(".bill-paragraph").not(show_para).addClass("hidden");
+          $(show_para).removeClass('hidden');
+          // get the appropriate URL from the button
+          let url = url_base.concat(this.id).concat('both.json');
+          let notable_url = url_base.concat(button_clicked).concat("notable.json");
+          fetch_notable_votes(notable_url);
+          fetch_url(url);
+        });
+    </script>
+  </div> <!-- map display -->
+
+
+
+</body>
+</html>
